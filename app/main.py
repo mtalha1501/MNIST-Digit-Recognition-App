@@ -67,6 +67,14 @@ def create_app(config: dict | None = None) -> Flask:
     device = torch.device(app.config["DEVICE"])
     model = load_model(Path(app.config["MODEL_PATH"]), device)
 
+    try:
+        with torch.no_grad():
+            height, width = app.config["TARGET_SIZE"]
+            dummy_input = torch.zeros((1, 1, height, width), device=device)
+            model(dummy_input)
+    except Exception as exc:  # noqa: BLE001
+        app.logger.warning("Model warm-up failed: %s", exc)
+
     @app.route("/", methods=["GET", "POST"])
     def index():
         invert = bool(request.form.get("invert"))

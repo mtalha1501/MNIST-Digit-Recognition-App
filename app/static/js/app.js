@@ -95,15 +95,22 @@ document.addEventListener("DOMContentLoaded", () => {
         body: formData,
       });
 
+      const contentType = response.headers.get("content-type") || "";
       let payload;
-      try {
-        payload = await response.json();
-      } catch (jsonError) {
-        throw new Error("Prediction failed: invalid server response.");
-      }
 
-      if (!response.ok) {
-        throw new Error(payload.error || "Prediction failed.");
+      if (contentType.includes("application/json")) {
+        payload = await response.json();
+        if (!response.ok) {
+          throw new Error(payload.error || "Prediction failed.");
+        }
+      } else {
+        const text = (await response.text()).trim();
+        const fallbackMessage =
+          text ||
+          (response.status >= 500
+            ? "Service is warming up. Please retry in a moment."
+            : "Prediction failed: unexpected server response.");
+        throw new Error(fallbackMessage);
       }
 
       if (existingImageField && payload.existingImage) {
