@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MNIST Digit Recognizer</title>
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-header">
+        <div class="brand">
+          <span class="logo">MNIST</span>
+          <div>
+            <h1>Digit Recognition Studio</h1>
+            <p>Upload any handwritten digit and let the trained CNN identify it in milliseconds.</p>
+          </div>
+        </div>
+      </header>
+      <main class="content">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="flash">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <section class="workspace">
+          <form method="post" enctype="multipart/form-data" class="upload" id="analyze-form">
+            <input
+              type="hidden"
+              name="existing_image"
+              id="existing-image-field"
+              value="{{ existing_image or '' }}"
+            />
+            <div class="field">
+              <label for="image">Choose a digit image</label>
+              <input
+                id="image"
+                name="image"
+                type="file"
+                accept="image/*"
+                {% if not existing_image %}required{% endif %}
+              />
+              <small>PNG or JPG · ideally centered and 28×28px (we'll resize for you)</small>
+            </div>
+            <div class="field toggle">
+              <label>
+                <input id="invert" name="invert" type="checkbox" {% if invert %}checked{% endif %} />
+                Invert colors (use for dark digits on white background)
+              </label>
+              <small class="hint">Enable inversion when your digit is dark on a white canvas so the model sees a white digit on black.</small>
+            </div>
+            <div class="actions">
+              <button type="submit" id="analyze-button">Analyze Digit</button>
+            </div>
+          </form>
+
+          <aside class="panel" id="result-panel">
+            <div class="preview{% if not preview_src %} hidden{% endif %}" id="preview-card">
+              <img
+                id="preview-image"
+                src="{{ 'data:image/png;base64,' ~ preview_src if preview_src else '' }}"
+                alt="Uploaded digit preview"
+              />
+              <div class="info" id="preview-info">
+                <span>
+                  Original size · <span id="preview-size">{{ preview_size[0] }} × {{ preview_size[1] }}</span>
+                </span>
+                <span>Invert applied · <span id="preview-invert">{{ 'Yes' if invert else 'No' }}</span></span>
+              </div>
+            </div>
+
+            <div class="placeholder{% if preview_src %} hidden{% endif %}" id="preview-placeholder">
+              <p>Preview will appear here after you upload an image.</p>
+            </div>
+
+            <div class="result{% if not result %} hidden{% endif %}" id="result-card">
+              <span class="label">Predicted digit</span>
+              <strong id="result-digit">{{ result.prediction if result else '' }}</strong>
+              <div class="probabilities" id="probabilities-list">
+                {% if result %}
+                  {% for digit, prob in result.probabilities %}
+                    <span data-digit="{{ digit }}">{{ digit }} ▸ {{ '%.4f'|format(prob) }}</span>
+                  {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="flash hidden" id="prediction-error"></div>
+          </aside>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <p>
+          Built with <a href="https://pytorch.org/" target="_blank" rel="noreferrer">PyTorch</a>
+          · Model test accuracy: 99.2%
+        </p>
+        <p>Contact: <a href="mailto:mtalha1501@gmail.com">mtalha1501@gmail.com</a></p>
+      </footer>
+    </div>
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  </body>
+</html>
