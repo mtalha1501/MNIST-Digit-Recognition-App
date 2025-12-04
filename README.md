@@ -1,4 +1,4 @@
-# Task 2 · MNIST Digit Recognition
+# MNIST Digit Recognition
 
 This project trains a convolutional neural network (CNN) on the MNIST handwritten digit dataset. The goal is to preprocess the images, train a classifier for digits 0–9, and evaluate its accuracy.
 
